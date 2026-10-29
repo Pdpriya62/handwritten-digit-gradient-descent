@@ -5,6 +5,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
+MNIST_URL = "https://storage.googleapis.com/tensorflow/tf-keras-datasets/mnist.npz"
 
 
 def _load_mnist_raw(cache_dir=DATA_DIR):
@@ -13,12 +14,16 @@ def _load_mnist_raw(cache_dir=DATA_DIR):
     if cache.exists():
         d = np.load(cache)
         return d["X"], d["y"]
-    from sklearn.datasets import fetch_openml  # needs internet the first time only
+    import io
+    import urllib.request  # needs internet the first time only
 
-    print("Downloading MNIST (one time, ~15 MB)...")
-    X, y = fetch_openml("mnist_784", version=1, as_frame=False, return_X_y=True)
-    X = X.astype(np.uint8)
-    y = y.astype(np.int64)
+    # Plain .npz download; sklearn's fetch_openml breaks with some pandas versions.
+    print("Downloading MNIST (one time, ~11 MB)...")
+    with urllib.request.urlopen(MNIST_URL, timeout=120) as r:
+        raw = np.load(io.BytesIO(r.read()))
+    # Standard order: 60000 train images first, then 10000 test images.
+    X = np.concatenate([raw["x_train"], raw["x_test"]]).reshape(-1, 784).astype(np.uint8)
+    y = np.concatenate([raw["y_train"], raw["y_test"]]).astype(np.int64)
     cache.parent.mkdir(parents=True, exist_ok=True)
     np.savez_compressed(cache, X=X, y=y)
     return X, y
