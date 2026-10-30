@@ -154,6 +154,8 @@ handwritten-digit-gradient-descent/
 ├── run_all.py                    # whole pipeline in one command
 ├── app.py                        # Streamlit drawing demo
 ├── requirements.txt
+├── report.md                     # project report
+├── MATH_EXPLAINED.md             # step-by-step explanation of all the maths
 ├── README.md, PROJECT.md, PROGRESS.md, ARCHITECTURE.md
 └── .gitignore
 ```
