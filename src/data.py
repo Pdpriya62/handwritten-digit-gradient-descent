@@ -39,7 +39,7 @@ def load_data(dataset="mnist", n_val=10000, seed=0, cache_dir=DATA_DIR):
     """
     if dataset == "mnist":
         X, y = _load_mnist_raw(cache_dir)
-        X = X.astype(np.float32) / 255.0
+        X = X.astype(np.float64) / 255.0  # float64 like W: mixed-dtype matmul is ~10x slower
         X_pool, y_pool = X[:60000], y[:60000]
         X_test, y_test = X[60000:], y[60000:]
         X_train, y_train = X_pool[:-n_val], y_pool[:-n_val]
@@ -49,7 +49,7 @@ def load_data(dataset="mnist", n_val=10000, seed=0, cache_dir=DATA_DIR):
         from sklearn.datasets import load_digits
 
         d = load_digits()
-        X = (d.data / 16.0).astype(np.float32)
+        X = d.data / 16.0
         y = d.target.astype(np.int64)
         order = np.random.default_rng(seed).permutation(len(y))
         X, y = X[order], y[order]

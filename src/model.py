@@ -56,7 +56,7 @@ class SoftmaxClassifier:
         J = float(-logp[idx, y].mean())
         P = np.exp(logp)
         P[idx, y] -= 1.0              # P - Y, without building the one-hot matrix
-        dW = (P.T @ X) / N
+        dW = (X.T @ P).T / N          # same as P^T X; this order avoids a very slow BLAS path
         db = P.sum(axis=0) / N
         return J, dW, db
 
