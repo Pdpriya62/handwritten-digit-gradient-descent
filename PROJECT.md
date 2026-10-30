@@ -1,6 +1,5 @@
 # PROJECT: Handwritten Digit Classification Using Gradient Descent
 
-**Author:** Priyadarshini Prasad (Section D, AIML), RV University
 **Course context:** Calculus, applied to machine learning
 **Status:** Implemented and evaluated on MNIST; report/slides in progress (see `PROGRESS.md`)
 **Repository:** https://github.com/Pdpriya62/handwritten-digit-gradient-descent

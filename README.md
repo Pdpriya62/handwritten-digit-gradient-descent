@@ -260,12 +260,6 @@ The implemented Softmax Regression model is a baseline classifier rather than a 
 - Experiment with momentum-based optimization.
 - Study the effect of feature scaling and parameter initialization.
 
-## 👨‍💻 Author
-
-**Priyadarshini Prasad** (Section D, AIML), RV University
-
-Second-Year Computer Science and Engineering — Artificial Intelligence and Machine Learning
-
 ## 📄 License
 
 This project may be released under the MIT License. Add a `LICENSE` file if you choose to publish it under that license.
