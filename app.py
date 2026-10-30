@@ -39,7 +39,7 @@ with left:
     canvas = st_canvas(
         fill_color="#000000", stroke_width=20, stroke_color="#FFFFFF",
         background_color="#000000", height=280, width=280,
-        drawing_mode="freedraw", key="canvas",
+        drawing_mode="freedraw", key="canvas", return_image_data=True,
     )
     st.caption("Use the trash icon under the canvas to clear it.")
 
