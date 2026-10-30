@@ -2,7 +2,8 @@
 
 **Author:** Priyadarshini Prasad (Section D, AIML), RV University
 **Course context:** Calculus, applied to machine learning
-**Status:** Planning / early implementation (see `PROGRESS.md`)
+**Status:** Implemented and evaluated on MNIST; report/slides in progress (see `PROGRESS.md`)
+**Repository:** https://github.com/Pdpriya62/handwritten-digit-gradient-descent
 
 ## 1. Summary
 Train a Softmax Regression classifier on MNIST to recognise digits 0-9. The gradient, loss and parameter updates are implemented from scratch in NumPy. The project studies how the learning rate affects convergence and accuracy.
@@ -16,10 +17,11 @@ Train a Softmax Regression classifier on MNIST to recognise digits 0-9. The grad
 
 ## 3. Scope
 **In scope:** Softmax Regression, batch Gradient Descent, learning-rate study, evaluation plots, written report.
-**Out of scope (future work):** Mini-batch/SGD, L2 regularisation, momentum, neural network comparison, drawing interface.
+**Also built:** a Streamlit drawing demo (`app.py`).
+**Out of scope (future work):** Mini-batch/SGD, L2 regularisation, momentum, neural network comparison.
 
 ## 4. Dataset
-MNIST: 28 x 28 grayscale images, 784 features, 10 classes. Pixels are scaled from 0-255 to 0-1. The data is split into train, validation and test sets.
+MNIST: 28 x 28 grayscale images, 784 features, 10 classes. Pixels are scaled from 0-255 to 0-1. The data is split into 50,000 train, 10,000 validation and 10,000 test images (the standard MNIST test set).
 
 ## 5. Method (short)
 - Scores: `z = Wx + b`
@@ -54,4 +56,5 @@ MNIST: 28 x 28 grayscale images, 784 features, 10 classes. Pixels are scaled fro
 | Numerical overflow in Softmax | Subtract the row max before `exp` |
 | Slow full-batch training | Vectorise with NumPy; fewer epochs for the sweep |
 | Unfair LR comparison | Fix split, init seed and epochs |
-| Dataset download issues | Cache MNIST locally in `data/` |
+| Dataset download issues | Download the plain `mnist.npz` once and cache it in `data/` |
+| Slow matrix products | Keep data and weights in the same dtype (`float64`); compute `dW` as `(X^T P)^T` |

@@ -37,7 +37,7 @@ The challenge is to find suitable model parameters that minimize prediction erro
 
 Dataset source: [MNIST Database of Handwritten Digits](https://yann.lecun.com/exdb/mnist/)
 
-The dataset will be divided into training, validation, and test sets to train the model, tune hyperparameters, and evaluate its final performance.
+The 60,000 MNIST training images are split into 50,000 for training and 10,000 for validation (used to choose the learning rate). The standard 10,000 MNIST test images are used once, for the final evaluation.
 
 ## 🧮 Mathematical Formulation
 
@@ -115,13 +115,13 @@ Here, \(\alpha\) is the learning rate, which controls the size of each optimizat
 
 ### 4. Learning Rate Analysis
 
-The project will compare multiple learning rates to understand their effects on convergence.
+The project compares five learning rates (0.01, 0.1, 0.5, 2 and 8) to understand their effects on convergence.
 
 - **Too small:** Training may converge slowly.
 - **Appropriate:** The loss generally decreases steadily.
 - **Too large:** Optimization may oscillate or become unstable.
 
-Training loss and validation accuracy will be plotted against epochs to compare the behavior of different learning rates.
+Training loss and validation accuracy are plotted against epochs to compare the behavior of different learning rates.
 
 ## ⚙️ Technologies Used
 
@@ -130,31 +130,33 @@ Training loss and validation accuracy will be plotted against epochs to compare 
 - **Matplotlib** — plotting loss curves and sample predictions
 - **Scikit-learn** — evaluation metrics and confusion matrix
 - **Jupyter Notebook** — experimentation and visualization
+- **Streamlit** + **streamlit-drawable-canvas** — drawing demo
+- **Pillow** — resizing drawn digits for the demo
 
-The model's core training algorithm will be implemented using NumPy rather than a deep learning framework.
+The model's core training algorithm is implemented in NumPy rather than with a deep learning framework. Scikit-learn is used only for the confusion matrix.
 
 ## 📁 Project Structure
 
 ```text
 handwritten-digit-gradient-descent/
 │
-├── data/                    # Dataset files, if stored locally
+├── data/                         # MNIST is downloaded here on the first run (not in git)
 ├── notebooks/
-│   └── digit_classification.ipynb
+│   └── digit_classification.ipynb  # step-by-step experiments, observations, conclusions
 ├── src/
-│   ├── model.py              # Softmax classifier
-│   ├── train.py              # Gradient Descent training
-│   └── evaluate.py           # Model evaluation
-├── results/
-│   ├── loss_curves.png
-│   ├── accuracy_comparison.png
-│   └── confusion_matrix.png
+│   ├── data.py                   # download/cache MNIST, scale to 0-1, split
+│   ├── model.py                  # Softmax classifier: loss, gradients, predict, save/load
+│   ├── train.py                  # Gradient Descent loop and learning-rate sweep
+│   ├── evaluate.py               # accuracy, confusion matrix, plots
+│   ├── gradcheck.py              # analytic vs numerical gradient check
+│   └── preprocess.py             # turns a canvas drawing into a 28x28 MNIST-style input
+├── results/                      # plots and trained weights (weights.npz)
+├── run_all.py                    # whole pipeline in one command
+├── app.py                        # Streamlit drawing demo
 ├── requirements.txt
-├── README.md
+├── README.md, PROJECT.md, PROGRESS.md, ARCHITECTURE.md
 └── .gitignore
 ```
-
-*This structure is a proposed organization for the project; files and plots will be added as they are implemented.*
 
 ## 🚀 Installation and Usage
 
@@ -165,68 +167,56 @@ git clone https://github.com/Pdpriya62/handwritten-digit-gradient-descent.git
 cd handwritten-digit-gradient-descent
 ```
 
-
-### 2. Create a virtual environment (optional)
+### 2. Create a virtual environment and install dependencies
 
 ```bash
 python -m venv .venv
-```
-
-Activate it:
-
-**Windows**
-```bash
-.venv\Scripts\activate
-```
-
-**macOS/Linux**
-```bash
-source .venv/bin/activate
-```
-
-### 3. Install dependencies
-
-Create a `requirements.txt` file containing:
-
-```text
-numpy
-matplotlib
-scikit-learn
-jupyter
-```
-
-Then run:
-
-```bash
+.venv\Scripts\activate          # Windows (PowerShell: .venv\Scripts\Activate.ps1)
+source .venv/bin/activate        # macOS/Linux
 pip install -r requirements.txt
 ```
 
-### 4. Run the project
-
-After implementing the training pipeline and preparing the dataset, launch the notebook:
+### 3. Run the project
 
 ```bash
-jupyter notebook notebooks/digit_classification.ipynb
+python run_all.py                                       # downloads MNIST once (~11 MB), trains, saves plots + results/weights.npz
+jupyter notebook notebooks/digit_classification.ipynb   # step-by-step experiments
+streamlit run app.py                                    # draw a digit and get a prediction
 ```
 
-Follow the notebook to load the dataset, train the classifier, compare learning rates, and evaluate predictions.
+In VS Code you can also open the notebook directly and choose the `.venv` kernel.
+
+`python run_all.py --epochs 200 --lrs 0.01 0.1 0.5 2 8` changes the epochs and learning rates. `python run_all.py --dataset digits` runs a small offline smoke test on the 8x8 scikit-learn digits.
 
 ## 📈 Results and Evaluation
 
-The project will evaluate the model using:
+Full-batch Gradient Descent, 100 epochs, same data split and initial weights (seed 0) for every learning rate.
 
-- **Training loss:** Measures the objective value during training.
-- **Validation loss:** Measures generalization to unseen validation examples.
-- **Classification accuracy:** Percentage of correctly predicted digits.
-- **Confusion matrix:** Shows which digits are most frequently confused.
-- **Learning-rate comparison:** Illustrates differences in optimization behavior.
-- **Sample predictions:** Displays images alongside their predicted and actual labels.
+**Gradient check:** relative error between analytic and numerical gradients = `1.70e-10`. Loss of the untrained model = `2.3058` (expected about ln 10 = `2.3026`).
 
-The final report will include the measured results after the experiments are completed. No accuracy or convergence result is assumed in advance.
+| Learning rate | Final train loss | Final validation accuracy |
+|---|---|---|
+| 0.01 | 1.5622 | 0.7888 |
+| 0.1 | 0.6180 | 0.8778 |
+| **0.5** | **0.3980** | **0.9056** |
+| 2 | 0.5149 | 0.8634 |
+| 8 | 1.6277 | 0.8457 |
+
+**Test set (best learning rate 0.5, chosen on validation accuracy):** accuracy **0.9026**, loss 0.3720.
+
+- **0.01** is too small: the loss falls smoothly but is still 1.56 after 100 epochs.
+- **0.1 and 0.5** converge smoothly; 0.5 is the fastest without instability.
+- **2 and 8** are too large: the loss spikes repeatedly (above 40 for lr = 8) because the steps overshoot the minimum.
+- Most common confusions (true -> predicted): 4 -> 9 (49), 9 -> 4 (44), 2 -> 8 (44), 5 -> 3 (43), 7 -> 9 (40).
+
+![Training loss](results/loss_curves.png)
+![Validation accuracy](results/accuracy_comparison.png)
+![Confusion matrix](results/confusion_matrix.png)
+![Weight templates](results/weight_templates.png)
 
 ## 🔬 Experiments
 
-The following experiments will be conducted:
+The following experiments were conducted:
 
 1. Train the classifier using a baseline learning rate.
 2. Compare small, moderate, and large learning rates.
@@ -235,7 +225,7 @@ The following experiments will be conducted:
 5. Investigate whether the loss converges or oscillates.
 6. Inspect correctly classified and misclassified digit images.
 
-For a fair comparison, the experiments should use the same data split, parameter initialization where appropriate, and number of epochs.
+For a fair comparison, every run uses the same data split, the same initial parameters (seed 0) and the same number of epochs.
 
 ## 📚 Calculus Concepts Demonstrated
 
@@ -268,7 +258,6 @@ The implemented Softmax Regression model is a baseline classifier rather than a 
 - Add L2 regularization.
 - Compare Softmax Regression with a neural network.
 - Experiment with momentum-based optimization.
-- Build a simple interface where users can draw a digit and receive a prediction.
 - Study the effect of feature scaling and parameter initialization.
 
 ## 👨‍💻 Author
@@ -284,14 +273,3 @@ This project may be released under the MIT License. Add a `LICENSE` file if you 
 ---
 
 **Key takeaway:** This project demonstrates how Calculus-based optimization enables a machine learning model to learn from data, while providing an opportunity to study gradients, objective functions, and convergence experimentally.
-
-## ▶️ Quick Start (Demo)
-
-```bash
-pip install -r requirements.txt
-python run_all.py          # downloads MNIST once, trains, saves plots + results/weights.npz
-jupyter notebook notebooks/digit_classification.ipynb   # step-by-step experiments
-streamlit run app.py       # draw a digit and get a prediction
-```
-
-Other files: `run_all.py` (whole pipeline), `app.py` (Streamlit demo), `src/gradcheck.py` (numerical gradient check), `src/preprocess.py` (canvas drawing to 28x28 input), `PROJECT.md`, `PROGRESS.md`, `ARCHITECTURE.md`.

@@ -26,11 +26,13 @@ A small, library-light ML pipeline. The core is plain Python and NumPy. A web fr
 ## 2. Modules
 | File | Responsibility |
 |---|---|
-| `src/data.py` | Load MNIST, scale to 0-1, flatten, split train/val/test |
+| `src/data.py` | Download MNIST once (`mnist.npz`), cache in `data/`, scale to 0-1, flatten, split train/val/test |
 | `src/model.py` | `SoftmaxClassifier`: `forward`, `loss`, `gradients`, `predict` |
 | `src/train.py` | Training loop, learning-rate sweep, loss/accuracy history |
 | `src/evaluate.py` | Accuracy, confusion matrix, sample predictions, plots |
 | `src/gradcheck.py` | Finite-difference check of analytic gradients |
+| `src/preprocess.py` | Turns a canvas drawing into an MNIST-style 28x28 input |
+| `run_all.py` | Runs the whole pipeline and writes `results/` (plots, `weights.npz`, `metrics.json`) |
 | `notebooks/digit_classification.ipynb` | Runs experiments and shows plots |
 | `app.py` (optional) | Streamlit demo that loads saved weights |
 
@@ -47,6 +49,9 @@ A small, library-light ML pipeline. The core is plain Python and NumPy. A web fr
 - **Fixed seed, split and epochs** across the learning-rate sweep for a fair comparison.
 - **Weights stored as `.npz`**, so the demo does not retrain.
 - **Scikit-learn only for metrics**, not for the model.
+- **MNIST downloaded as a plain `.npz` file**, not with `fetch_openml`, which fails with some pandas versions.
+- **`float64` data and weights.** Mixing `float32` data with `float64` weights made each matrix product about 10x slower.
+- **`dW` computed as `(X^T P)^T`.** It equals `P^T X`, but avoids a very slow OpenBLAS path (about 11.8 s per epoch before both fixes, about 0.3 s after).
 
 ## 5. Front end decision
 | Need | Choice |
@@ -60,7 +65,7 @@ A small, library-light ML pipeline. The core is plain Python and NumPy. A web fr
 Browser (Streamlit canvas)
         |  user draws a digit
         v
-app.py: resize to 28x28, invert to white-on-black, scale 0-1, flatten
+app.py: crop, scale to fit 20x20, centre by centre of mass in 28x28, scale 0-1, flatten
         |
         v
 SoftmaxClassifier.predict(weights.npz)
